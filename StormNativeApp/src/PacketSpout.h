@@ -34,9 +34,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <assert.h>
 #include <arpa/inet.h>
-#include "Storm.h"
 #include "json/json.h"
+#include "Storm.h"
 #include "RawPacket.h"
+#include "Client.h"
+
 
 using namespace storm;
 using std::string;
@@ -50,14 +52,14 @@ string HardAddressToString(unsigned char *address) {
 Json::Value ParsePacket(RawPacket *rp)
 {
 	Json::Value root;
-	root["time"] = rp->pkthdr_.ts.tv_sec;
+	root["time"] = (long long)rp->pkthdr_.ts.tv_sec;
 	root["caplen"] = rp->pkthdr_.caplen;
 
-	char *packet = rp->packet_;
+	unsigned char *packet = rp->packet_;
 	const struct sniff_ethernet *ethernet = (struct sniff_ethernet*)(packet);
 	root["ether_type"] = ethernet->ether_type;
-	root["ether_src"] = HardAddressToString(ethernet->ether_shost);
-	root["ether_dst"] = HardAddressToString(ethernet->ether_dhost);
+	root["ether_src"] = HardAddressToString((unsigned char*)ethernet->ether_shost);
+	root["ether_dst"] = HardAddressToString((unsigned char*)ethernet->ether_dhost);
 
 	if (ethernet->ether_type != 0x0800) { //not ip protocol
 		return root;

@@ -23,7 +23,7 @@ Client::~Client() {
 	// TODO Auto-generated destructor stub
 }
 
-Client* Client::CreateClient(char *host, char *port)
+Client* Client::CreateClient(const char *host, const char *port)
 {
 	if (host == NULL || strlen(host) > HostLen ||
 			port == NULL || strlen(port) > PortLen) {
@@ -39,9 +39,8 @@ int Client::Connect()
 {
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;
-	int sfd, s, j;
+	int sfd, s;
 
-	/* Obtain address(es) matching host/port */
 
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
@@ -54,11 +53,6 @@ int Client::Connect()
 	   fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
 	   exit(EXIT_FAILURE);
 	}
-
-	/* getaddrinfo() returns a list of address structures.
-	  Try each address until we successfully connect(2).
-	  If socket(2) (or connect(2)) fails, we (close the socket
-	  and) try the next address. */
 
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
 	   sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -77,6 +71,8 @@ int Client::Connect()
 	}
 
 	freeaddrinfo(result);           /* No longer needed */
+	fd_ = sfd;
+	return 0;
 }
 
 
@@ -107,7 +103,7 @@ RawPacket* Client::NextPacket()
 		currentPos_ += nread;
 		int leftLen = CheckPacketComplete(dataBuf_ + dataStart_, currentPos_ - dataStart_);
 		if (leftLen >= 0) {
-			RawPacket *packet = new RawPacket(dataBuf_ + dataStart_, dataBuf_ + dataStart_ + sizeof(struct pcap_pkthdr));
+			RawPacket *packet = new RawPacket((struct pcap_pkthdr *)dataBuf_ + dataStart_, (unsigned char*)dataBuf_ + dataStart_ + sizeof(struct pcap_pkthdr));
 			if (BufferLen - currentPos_ < 1600) { //max pdu length
 				currentPos_ = 0; // move to starter
 			}

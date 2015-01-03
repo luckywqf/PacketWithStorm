@@ -27,7 +27,7 @@ private:
 	int currentPos_;
 public:
 	virtual ~Client();
-	static Client* CreateClient(char *host, char *port);
+	static Client* CreateClient(const char *host, const char *port);
 	int Connect();
 	RawPacket* NextPacket();
 	int CheckPacketComplete(char *data, int len);

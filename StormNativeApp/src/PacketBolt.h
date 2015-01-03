@@ -39,20 +39,20 @@ using namespace storm;
 
 class PacketBolt : public BasicBolt
 {
-	public:
-		void Initialize(Json::Value conf, Json::Value context) { }
-		void Process(Tuple &tuple)
-		{
-			Json::Value root = tuple.GetValues();
+public:
+	void Initialize(Json::Value conf, Json::Value context) { }
+	void Process(Tuple &tuple)
+	{
+		Json::Value root = tuple.GetValues();
 
-			for (int i = 0; i < tokens.size(); ++i)
-			{
-				Json::Value j_token;
-				j_token.append(tokens[i]);
-				Tuple t(j_token);
-				Emit(t);
-			}
-		}
+//			for (int i = 0; i < tokens.size(); ++i)
+//			{
+//				Json::Value j_token;
+//				j_token.append(tokens[i]);
+//				Tuple t(j_token);
+//				Emit(t);
+//			}
+	}
 };
 
 

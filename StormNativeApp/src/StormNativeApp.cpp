@@ -1,15 +1,13 @@
-//============================================================================
-// Name        : StormNativeApp.cpp
-// Author      : luckywqf
-// Version     :
-// Copyright   : 
-// Description : Hello World in C++, Ansi-style
-//============================================================================
-
 #include <iostream>
-using namespace std;
+#include <stdexcept>
 
-int main() {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+#include "PacketSpout.h"
+
+
+int main(int argc, char *argv[])
+{
+	PacketSpout ps;
+	ps.Run();
 	return 0;
 }
+
