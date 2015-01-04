@@ -40,7 +40,7 @@ public class PacketWithStorm {
 	public static class PacketSpout extends ShellSpout implements IRichSpout {
 
 		public PacketSpout() {
-			super("PacketSpout");
+			super("bash", "start_app.sh");
 		}
 
 		public void declareOutputFields(OutputFieldsDeclarer declarer) {

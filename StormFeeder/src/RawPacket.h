@@ -17,6 +17,7 @@ using boost::serialization::singleton;
 class RawPacket {
 public:
 	RawPacket(const struct pcap_pkthdr *pkthdr, const u_char *packet);
+	RawPacket(RawPacket &&rp);
 	virtual ~RawPacket() {
 		delete packet_;
 	}

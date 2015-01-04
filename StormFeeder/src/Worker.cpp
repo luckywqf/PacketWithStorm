@@ -108,7 +108,7 @@ void SpoutWorker::Run()
 {
 	int ret;
 	while(running_) {
-		ret = epoll_wait(epollfd_, events, EPOLLEVENTS, -1);
+		ret = epoll_wait(epollfd_, events, EPOLLEVENTS, 1000);
 		handle_events(events, ret, listenfd_);
 
 		for (map<int, Client>::iterator it = clientMap_.begin();
@@ -120,6 +120,8 @@ void SpoutWorker::Run()
 				it->second.setCanSend(false);
 			}
 		}
+
+		CheckRound();
 	}
 }
 
@@ -150,7 +152,8 @@ void SpoutWorker::HandleAccpet(int listenfd)
 {
 	int clifd;
 	struct sockaddr_in cliaddr;
-	socklen_t  cliaddrlen;
+	socklen_t  cliaddrlen = 0;
+	memset((char*)&cliaddr, 0, sizeof(cliaddr));
 	clifd = accept(listenfd,(struct sockaddr*)&cliaddr, &cliaddrlen);
 	if (clifd == -1) {
 		perror("accpet error:");

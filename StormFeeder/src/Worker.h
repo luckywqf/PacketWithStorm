@@ -27,7 +27,7 @@ public:
 	Client(int fd) {
 		fd_ = fd;
 		hasSend_ = false;
-		canSend_ = false;
+		canSend_ = true;//can send when start
 	}
 
 	bool NeedSend() {
