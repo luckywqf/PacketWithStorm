@@ -40,6 +40,7 @@ public:
 
 	void setSend(bool haveSend) {
 		hasSend_ = haveSend;
+		std::cerr << fd_ << " send=" << hasSend_ << std::endl;
 	}
 
 	void setCanSend(bool canSend) {
@@ -78,7 +79,7 @@ private:
 	void SetClientRoundStart();
 
 	void CheckRound();
-
+	void SetClientsEvent();
 	void Run();
 
 	void handle_events(struct epoll_event *events, int num, int listenfd);

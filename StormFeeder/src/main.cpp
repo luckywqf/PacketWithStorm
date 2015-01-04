@@ -17,8 +17,7 @@ using namespace std;
 
 void PcapHandler(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char *packet)
 {
-	RawPacket rp(pkthdr, packet);
-	PacketContainer::get_mutable_instance().pushPacket(move(rp));
+	PacketContainer::get_mutable_instance().pushPacket(RawPacket(pkthdr, packet));
 }
 
 pcap_t* StartCapture()

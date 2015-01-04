@@ -28,7 +28,7 @@
 
 #define LISTENQ     5
 #define FDSIZE      1000
-#define WORKER_EPOLL (EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLET)
+#define WORKER_EPOLL (EPOLLIN | EPOLLOUT)// | EPOLLET)
 
 
 int SpoutWorker::StartWorker(const char* ip, uint16_t port)
@@ -70,6 +70,8 @@ int SpoutWorker::socket_bind(const char* ip,int port)
 		perror("socket error:");
 		exit(1);
 	}
+	int optval = 1;
+	setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	bzero(&servaddr,sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	inet_pton(AF_INET,ip,&servaddr.sin_addr);
@@ -78,6 +80,7 @@ int SpoutWorker::socket_bind(const char* ip,int port)
 		perror("bind error: ");
 		exit(1);
 	}
+
 	return listenfd;
 }
 
@@ -104,20 +107,35 @@ void SpoutWorker::CheckRound()
 	SetClientRoundStart();
 }
 
+void SpoutWorker::SetClientsEvent()
+{
+	if (PacketContainer::get_mutable_instance().GetSize() <= 0) {
+		return;
+	}
+	for (map<int, Client>::iterator it = clientMap_.begin(); it != clientMap_.end(); ++it) {
+		if (!it->second.hasSend()) {
+			modify_event(it->first, WORKER_EPOLL);
+		}
+	}
+}
+
 void SpoutWorker::Run()
 {
 	int ret;
 	while(running_) {
-		ret = epoll_wait(epollfd_, events, EPOLLEVENTS, 1000);
+
+		SetClientsEvent();
+		ret = epoll_wait(epollfd_, events, EPOLLEVENTS, -1);
 		handle_events(events, ret, listenfd_);
 
 		for (map<int, Client>::iterator it = clientMap_.begin();
-				it != clientMap_.end() && PacketContainer::get_mutable_instance().GetSize() > 0; ) {
+				it != clientMap_.end() && PacketContainer::get_mutable_instance().GetSize() > 0; ++it) {
 			if (it->second.NeedSend()) {
 				RawPacket rp = PacketContainer::get_mutable_instance().getPacket();
 				do_write(it->first, &rp);
 				it->second.setSend(true);
 				it->second.setCanSend(false);
+				modify_event(it->first, EPOLLIN);
 			}
 		}
 
@@ -133,6 +151,7 @@ void SpoutWorker::handle_events(struct epoll_event *events, int num, int listenf
 		fd = events[i].data.fd;
 		if ((fd == listenfd) && (events[i].events & EPOLLIN)) {
 			HandleAccpet(listenfd);
+			fprintf(stderr, "accept %d \n", listenfd);
 		}
 
 		else if (events[i].events & EPOLLIN) {
@@ -144,6 +163,7 @@ void SpoutWorker::handle_events(struct epoll_event *events, int num, int listenf
 		}
 		else if (events[i].events & EPOLLERR){
 			do_error(fd);
+			fprintf(stderr, "do_error %d \n", fd);
 		}
 	}
 }
@@ -226,11 +246,13 @@ void SpoutWorker::do_write(int fd, RawPacket *packet)
 		perror("write error:");
 		RemoveClient(fd);
 	}
-	delete writeBuf;
+	delete []writeBuf;
+	std::cerr << "do_write " << fd << std::endl;
 }
 
 void SpoutWorker::add_event(int fd, int state)
 {
+	std::cerr << "add_event " << fd << " " << state << std::endl;
 	struct epoll_event ev;
 	ev.events = state;
 	ev.data.fd = fd;
@@ -239,6 +261,7 @@ void SpoutWorker::add_event(int fd, int state)
 
 void SpoutWorker::delete_event(int fd, int state)
 {
+	std::cerr << "delete_event " << fd << " " << state << std::endl;
 	struct epoll_event ev;
 	ev.events = state;
 	ev.data.fd = fd;
@@ -247,6 +270,7 @@ void SpoutWorker::delete_event(int fd, int state)
 
 void SpoutWorker::modify_event(int fd, int state)
 {
+	std::cerr << "modify_event " << fd << " " << state << std::endl;
 	struct epoll_event ev;
 	ev.events = state;
 	ev.data.fd = fd;

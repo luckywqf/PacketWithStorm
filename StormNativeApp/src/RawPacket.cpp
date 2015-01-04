@@ -20,6 +20,33 @@ RawPacket::RawPacket(const struct pcap_pkthdr *pkthdr, const u_char *packet)
 	memcpy(packet_, packet, pkthdr->caplen);
 }
 
+RawPacket::RawPacket(const RawPacket &rp)
+{
+	pkthdr_ = rp.pkthdr_;
+	packet_ = new u_char[rp.pkthdr_.caplen];
+	memcpy(packet_, rp.packet_, rp.pkthdr_.caplen);
+}
+
+RawPacket::RawPacket(RawPacket &&rp)
+{
+	pkthdr_ = rp.pkthdr_;
+	packet_ = rp.packet_;
+	memset((char*)&rp.pkthdr_, 0, sizeof(rp.pkthdr_));
+	rp.packet_ = NULL;
+}
+
+RawPacket& RawPacket::operator=(RawPacket &&rp)
+{
+	if (&rp != this) {
+		delete []packet_;
+
+		pkthdr_ = rp.pkthdr_;
+		packet_ = rp.packet_;
+		memset((char*)&rp.pkthdr_, 0, sizeof(rp.pkthdr_));
+		rp.packet_ = NULL;
+	}
+	return *this;
+}
 
 RawPacket PacketContainer::getPacket()
 {
@@ -36,5 +63,5 @@ void PacketContainer::pushPacket(RawPacket &&packet)
 	while (packetQueue_.size() >= MAX_QUEUE_SIZE) {
 		packetQueue_.pop();
 	}
-	packetQueue_.push(packet);
+	packetQueue_.push(std::move(packet));
 }

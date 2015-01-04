@@ -16,13 +16,18 @@ using boost::serialization::singleton;
 
 class RawPacket {
 public:
-	RawPacket(const struct pcap_pkthdr *pkthdr, const u_char *packet);
-	virtual ~RawPacket() {
-		delete packet_;
-	}
-
 	struct pcap_pkthdr pkthdr_;
 	u_char *packet_;
+
+public:
+	RawPacket(const struct pcap_pkthdr *pkthdr, const u_char *packet);
+	RawPacket(const RawPacket &rp);
+	RawPacket(RawPacket &&rp);
+	RawPacket& operator=(RawPacket &&rp);
+	virtual ~RawPacket() {
+		delete []packet_;
+		packet_ = NULL;
+	}
 };
 
 

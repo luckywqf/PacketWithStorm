@@ -103,7 +103,7 @@ RawPacket* Client::NextPacket()
 		currentPos_ += nread;
 		int leftLen = CheckPacketComplete(dataBuf_ + dataStart_, currentPos_ - dataStart_);
 		if (leftLen >= 0) {
-			RawPacket *packet = new RawPacket((struct pcap_pkthdr *)dataBuf_ + dataStart_, (unsigned char*)dataBuf_ + dataStart_ + sizeof(struct pcap_pkthdr));
+			RawPacket *packet = new RawPacket((struct pcap_pkthdr *)(dataBuf_ + dataStart_), (unsigned char*)(dataBuf_ + dataStart_ + sizeof(struct pcap_pkthdr)));
 			if (BufferLen - currentPos_ < 1600) { //max pdu length
 				currentPos_ = 0; // move to starter
 			}

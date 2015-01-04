@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 		}
 		Json::Value j_token = ParsePacket(rp);
 		std::cout << j_token.toStyledString() << std::endl;
+		delete rp;
 	}
 	return 0;
 }
