@@ -29,8 +29,6 @@ pcap_t* StartCapture()
 	//char filter_exp[] = "port 23";	/* The filter expression */
 	bpf_u_int32 mask;		/* Our netmask */
 	bpf_u_int32 net;		/* Our IP */
-	struct pcap_pkthdr header;	/* The header that pcap gives us */
-	const u_char *packet;		/* The actual packet */
 
 	/* Define the device */
 	dev = pcap_lookupdev(errbuf);
@@ -50,15 +48,7 @@ pcap_t* StartCapture()
 		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
 		return NULL;
 	}
-	/* Compile and apply the filter */
-//	if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
-//		fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
-//		return(2);
-//	}
-//	if (pcap_setfilter(handle, &fp) == -1) {
-//		fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
-//		return(2);
-//	}
+	return handle;
 }
 
 int main(int argc, char *argv[])
@@ -71,7 +61,7 @@ int main(int argc, char *argv[])
 	pcap_t *handle = StartCapture();
 	assert(handle);
 	while (running) {
-		pcap_loop(handle, 65536, PcapHandler, NULL);
+		pcap_loop(handle, -1, PcapHandler, NULL);
 	}
 
 	pcap_close(handle);

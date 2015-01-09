@@ -19,9 +19,8 @@ int main(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	Client *client;
-	client = Client::CreateClient("127.0.0.1", "125");
+	client = Client::CreateClient("10.222.165.239", "125");
 	client->Connect();
-	assert(client);
 	while(true) {
 		RawPacket *rp = client->NextPacket();
 		if (rp == NULL) {

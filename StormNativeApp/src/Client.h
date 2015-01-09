@@ -21,7 +21,7 @@ private:
 	char port_[PortLen];
 	int fd_;
 
-	static const int BufferLen = 10240;
+	static const int BufferLen = 65536;
 	char dataBuf_[BufferLen];
 	int dataStart_;
 	int currentPos_;

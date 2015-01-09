@@ -28,6 +28,7 @@ public:
 		fd_ = fd;
 		hasSend_ = false;
 		canSend_ = true;//can send when start
+		sendLength = 0;
 	}
 
 	bool NeedSend() {
@@ -51,6 +52,8 @@ private:
 	int fd_;
 	bool hasSend_;
 	bool canSend_;
+public:
+	uint64_t sendLength;
 };
 
 

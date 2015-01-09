@@ -101,10 +101,9 @@ void SpoutWorker::CheckRound()
 		}
 	}
 
-	if (!roundOver) {
-		return;
+	if (roundOver) {
+		SetClientRoundStart();
 	}
-	SetClientRoundStart();
 }
 
 void SpoutWorker::SetClientsEvent()
@@ -115,6 +114,7 @@ void SpoutWorker::SetClientsEvent()
 	for (map<int, Client>::iterator it = clientMap_.begin(); it != clientMap_.end(); ++it) {
 		if (!it->second.hasSend()) {
 			modify_event(it->first, WORKER_EPOLL);
+			//std::cerr << "modify_event SetClientsEvent" << it->first << " " << WORKER_EPOLL << std::endl;
 		}
 	}
 }
@@ -123,9 +123,7 @@ void SpoutWorker::Run()
 {
 	int ret;
 	while(running_) {
-
-		SetClientsEvent();
-		ret = epoll_wait(epollfd_, events, EPOLLEVENTS, -1);
+		ret = epoll_wait(epollfd_, events, EPOLLEVENTS, 10);
 		handle_events(events, ret, listenfd_);
 
 		for (map<int, Client>::iterator it = clientMap_.begin();
@@ -133,13 +131,17 @@ void SpoutWorker::Run()
 			if (it->second.NeedSend()) {
 				RawPacket rp = PacketContainer::get_mutable_instance().getPacket();
 				do_write(it->first, &rp);
+				it->second.sendLength += (rp.pkthdr_.caplen + 24);
+				std::cerr <<" all=" << it->second.sendLength << std::endl;
 				it->second.setSend(true);
 				it->second.setCanSend(false);
+				//std::cerr << "modify_event send over" << it->first << " " << EPOLLIN << std::endl;
 				modify_event(it->first, EPOLLIN);
 			}
 		}
 
 		CheckRound();
+		SetClientsEvent();
 	}
 }
 
@@ -186,12 +188,11 @@ void SpoutWorker::HandleAccpet(int listenfd)
 
 void SpoutWorker::AddClient(int fd)
 {
-	int flags = fcntl(fd, F_GETFL, 0);
-	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	//int flags = fcntl(fd, F_GETFL, 0);
+	//fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 	add_event(fd, WORKER_EPOLL);
 
 	clientMap_[fd] = Client(fd);
-	//printf("accept a new client: %s:%d\n",inet_ntoa(cliaddr.sin_addr),cliaddr.sin_port);
 }
 
 void SpoutWorker::RemoveClient(int fd)
@@ -247,7 +248,8 @@ void SpoutWorker::do_write(int fd, RawPacket *packet)
 		RemoveClient(fd);
 	}
 	delete []writeBuf;
-	std::cerr << "do_write " << fd << std::endl;
+	assert(nwrite == packet->pkthdr_.caplen + 24);
+	std::cerr << fd << " do_write=" << packet->pkthdr_.caplen << ", " << nwrite ;//<< std::endl;
 }
 
 void SpoutWorker::add_event(int fd, int state)
@@ -270,7 +272,6 @@ void SpoutWorker::delete_event(int fd, int state)
 
 void SpoutWorker::modify_event(int fd, int state)
 {
-	std::cerr << "modify_event " << fd << " " << state << std::endl;
 	struct epoll_event ev;
 	ev.events = state;
 	ev.data.fd = fd;
