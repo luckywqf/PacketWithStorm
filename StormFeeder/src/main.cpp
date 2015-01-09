@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	bool running = true;
 
 	SpoutWorker worker;
-	worker.StartWorker("127.0.0.1", 125);
+	worker.StartWorker("0.0.0.0", 125);
 
 	pcap_t *handle = StartCapture();
 	assert(handle);

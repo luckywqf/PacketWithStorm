@@ -188,8 +188,8 @@ void SpoutWorker::HandleAccpet(int listenfd)
 
 void SpoutWorker::AddClient(int fd)
 {
-	//int flags = fcntl(fd, F_GETFL, 0);
-	//fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	int flags = fcntl(fd, F_GETFL, 0);
+	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 	add_event(fd, WORKER_EPOLL);
 
 	clientMap_[fd] = Client(fd);
